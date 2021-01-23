@@ -1,6 +1,8 @@
 #imports
 import pandas as pd
 from sodapy import Socrata
+from flask import Flask, render_template
+app = Flask(__name__)
 
 # Unauthenticated client only works with public data sets. Note 'None'
 # in place of application token, and no username or password:
@@ -26,4 +28,11 @@ results_df = results_df.sort_values(by='submission_date', ascending=False)
 
 # Exporting to csv file
 results_df.to_csv('data.csv', header=True, index=False)
-print(results_df)
+
+@app.route('/')
+def homefunc():
+    return render_template('home.html')
+
+@app.route('/search')
+def searchfunc():
+    return render_template('search.html')

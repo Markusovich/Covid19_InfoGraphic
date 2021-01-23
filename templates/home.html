@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Home</title>
+{% endblock %}
+
+{% block body %}
+<br>
+<h1>Home Page</h1>
+<br>
+<main role="main">
+    <div class="jumbotron">
+        <div class="col-sm-8 mx-auto">
+            <h1>Welcome</h1>
+            <p>The COVID-19 pandemic continues to be a major disruptor in the United States. As a response to this
+                unprecedented crisis, the CDC has made publicly available daily data on the number of cases and death
+                count by county and date. The goal of this project will be to create a visualization and data export
+                tool for historical data on the number of casts and deaths related to COVID-19.</p>
+            <p>
+                <a class="btn btn-primary" href="/search" role="button">Search &raquo;</a>
+            </p>
+            <!--
+            <p>
+                <a class="btn btn-primary" href="data.csv" role="button" download="data.csv">Export Data &DownArrowBar;</a>
+            </p>
+            -->
+        </div>
+    </div>
+</main>
+{% endblock %}
