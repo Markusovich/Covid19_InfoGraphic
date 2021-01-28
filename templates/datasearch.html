@@ -72,9 +72,9 @@
     <div class="form-check">
         <input class="form-check-input" type="checkbox" value="yes" id="defaultCheck1" name="defaultCheck1">
         <label class="form-check-label" for="defaultCheck1">
-          Show only recent results
+            Show only recent results
         </label>
-      </div>
+    </div>
     <!--
 <div class="form-group">
     <label for="name">Name</label>
@@ -101,9 +101,24 @@
 <br>
 <br>
 
-<div style="background-color: white;">
-    {{data | safe}}
-</div>
+<table class="table table-dark">
+    <thead>
+        <tr>
+            {% for key in dataColumns %}
+            <th scope="col">{{ key }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in dataItems %}
+        <tr>
+            {% for value in row %}
+            <td>{{ value }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 <br>
 <br>

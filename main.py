@@ -2,7 +2,7 @@
 import pandas as pd
 from sodapy import Socrata
 from flask import Flask, render_template, request, redirect
-from IPython.display import HTML 
+from IPython.display import HTML
 app = Flask(__name__)
 
 # This function returns a dataframe of the most recent covid data
@@ -32,6 +32,9 @@ def getData():
 
     return results_df
 
+data = getData()
+data = data[data['state'] == "IL"]
+print(data.values())
 
 @app.route('/')
 def homefunc():
@@ -59,7 +62,7 @@ def datafunc():
 
         data.reset_index(drop=True, inplace=True)
 
-        return render_template('datasearch.html', data=data.to_html())
+        return render_template('datasearch.html', dataColumns=data.keys(), dataItems=data.to_numpy())
     else:
         return render_template('datasearch.html')
 
