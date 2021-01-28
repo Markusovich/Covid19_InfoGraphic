@@ -31,10 +31,7 @@ def getData():
     results_df.to_csv('data.csv', header=True, index=False)
 
     return results_df
-
-data = getData()
-data = data[data['state'] == "IL"]
-print(data.values())
+    
 
 @app.route('/')
 def homefunc():
