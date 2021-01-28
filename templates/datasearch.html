@@ -10,7 +10,7 @@
 <h1 style="color: white; text-shadow: black 0px 0px 10px;">Help Yourself.</h1>
 <br>
 <br>
-<form action="/exportdata" style="background-color: white; width: 40%; border-radius: 10px; padding: 20px;"
+<form action="/datasearch" style="background-color: white; width: 40%; border-radius: 10px; padding: 20px;"
     method="POST">
     <div class="form-group">
         <label for="state">Select State</label>
@@ -69,6 +69,12 @@
             <option value="WY">Wyoming</option>
         </select>
     </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="yes" id="defaultCheck1" name="defaultCheck1">
+        <label class="form-check-label" for="defaultCheck1">
+          Show only recent results
+        </label>
+      </div>
     <!--
 <div class="form-group">
     <label for="name">Name</label>
@@ -95,8 +101,9 @@
 <br>
 <br>
 
-
-{{data | safe}}
+<div style="background-color: white;">
+    {{data | safe}}
+</div>
 
 <br>
 <br>
