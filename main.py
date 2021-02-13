@@ -57,6 +57,12 @@ def datafunc():
             data = getData()
             pass
 
+        daterange = request.form['daterange']
+        daterange = daterange.split(" to ")
+        startDate = daterange[0]
+        endDate = daterange[1]
+        data = data[data.submission_date >= startDate]
+        data = data[data.submission_date < endDate]
 
         data = data.fillna(0)
         data[["tot_cases", "new_case", "tot_death", "new_death"]] = data[["tot_cases", "new_case", "tot_death", "new_death"]].astype('float')
@@ -84,7 +90,8 @@ def datafunc():
                             "new_death": "New Deaths",})
 
 
-        return render_template('datasearchstate.html', dataColumns=data.keys(), dataItems=data.to_numpy())
+        post = "This is a post"
+        return render_template('datasearchstate.html', dataColumns=data.keys(), dataItems=data.to_numpy(), post=post)
     else:
         return render_template('datasearchstate.html')
 
