@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect
 from IPython.display import HTML
 from numpy import math
 import numpy as np
+import matplotlib.pyplot as plt
 app = Flask(__name__)
 
 # This function returns a dataframe of the most recent covid data
@@ -32,9 +33,6 @@ def getData():
 
     # Sorting dataframe so that most recent submissions are first
     results_df = results_df.sort_values(by='submission_date', ascending=False)
-
-    # Exporting to csv file
-    results_df.to_csv('data.csv', header=True, index=False)
 
     return results_df
 
@@ -88,6 +86,7 @@ def datafunc():
                             "new_case": "New Cases",
                             "tot_death": "Total Deaths",
                             "new_death": "New Deaths",})
+
 
 
         post = "This is a post"
