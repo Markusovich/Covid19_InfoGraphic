@@ -84,35 +84,39 @@ def datafunc():
                                     "tot_death": "Total Deaths",
                                     "new_death": "New Deaths", })
 
-        plt.figure(figsize=(12, 5))
+        plt.figure(figsize=(12, 4))
         plt.xticks(rotation=45)
+        plt.style.use('dark_background')
+        plt.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['Total Cases'][::-1].astype('int'))
+        plt.tight_layout()
+        plt.savefig('./static/totalCases.png')
+
+        plt.figure(figsize=(12, 4))
+        plt.xticks(rotation=45)
+        plt.style.use('dark_background')
+        plt.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['Total Deaths'][::-1].astype('int'))
+        plt.tight_layout()
+        plt.savefig('./static/totalDeaths.png')
+
+        plt.figure(figsize=(12, 4))
+        plt.xticks(rotation=45)
+        plt.style.use('dark_background')
         plt.plot(data.sort_values('Date', ascending=True).reset_index(
             drop=True)['Date'], data['New Deaths'][::-1].astype('int'), '-o')
         plt.ylim(ymin=0)
         plt.tight_layout()
-        plt.savefig('newDeaths.png')
+        plt.savefig('./static/newDeaths.png')
 
-        plt.figure(figsize=(12, 5))
+        plt.figure(figsize=(12, 4))
         plt.xticks(rotation=45)
-        plt.bar(data.sort_values('Date', ascending=True).reset_index(
-            drop=True)['Date'], data['Total Deaths'][::-1].astype('int'))
-        plt.tight_layout()
-        plt.savefig('totalDeaths.png')
-
-        plt.figure(figsize=(12, 5))
-        plt.xticks(rotation=45)
+        plt.style.use('dark_background')
         plt.plot(data.sort_values('Date', ascending=True).reset_index(
             drop=True)['Date'], data['New Cases'][::-1].astype('int'), '-o')
         plt.ylim(ymin=0)
         plt.tight_layout()
-        plt.savefig('newCases.png')
-
-        plt.figure(figsize=(12, 5))
-        plt.xticks(rotation=45)
-        plt.bar(data.sort_values('Date', ascending=True).reset_index(
-            drop=True)['Date'], data['Total Cases'][::-1].astype('int'))
-        plt.tight_layout()
-        plt.savefig('totalCases.png')
+        plt.savefig('./static/newCases.png')
 
         #data["tot_cases"] = data.tot_cases.apply(lambda x: "{:,}".format(x))
         #data["new_case"] = data.new_case.apply(lambda x: "{:,}".format(x))
