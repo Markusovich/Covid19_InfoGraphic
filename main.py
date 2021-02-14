@@ -63,8 +63,10 @@ def datafunc():
         data = data[data.submission_date < endDate]
 
         data = data.fillna(0)
-        data[["tot_cases", "new_case", "tot_death", "new_death"]] = data[["tot_cases", "new_case", "tot_death", "new_death"]].astype('float')
-        data[["tot_cases", "new_case", "tot_death", "new_death"]] = data[["tot_cases", "new_case", "tot_death", "new_death"]].astype('int')
+        data[["tot_cases", "new_case", "tot_death", "new_death"]] = data[[
+            "tot_cases", "new_case", "tot_death", "new_death"]].astype('float')
+        data[["tot_cases", "new_case", "tot_death", "new_death"]] = data[[
+            "tot_cases", "new_case", "tot_death", "new_death"]].astype('int')
 
         data.reset_index(drop=True, inplace=True)
 
@@ -77,17 +79,45 @@ def datafunc():
         else:
             pass
 
-        data["tot_cases"] = data.tot_cases.apply(lambda x : "{:,}".format(x))
-        data["new_case"] = data.new_case.apply(lambda x : "{:,}".format(x))
-        data["tot_death"] = data.tot_death.apply(lambda x : "{:,}".format(x))
-        data["new_death"] = data.new_death.apply(lambda x : "{:,}".format(x))
-
         data = data.rename(columns={"submission_date": "Date", "state": "State", "tot_cases": "Total Cases",
-                            "new_case": "New Cases",
-                            "tot_death": "Total Deaths",
-                            "new_death": "New Deaths",})
+                                    "new_case": "New Cases",
+                                    "tot_death": "Total Deaths",
+                                    "new_death": "New Deaths", })
 
+        plt.figure(figsize=(12, 5))
+        plt.xticks(rotation=45)
+        plt.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['New Deaths'][::-1].astype('int'), '-o')
+        plt.ylim(ymin=0)
+        plt.tight_layout()
+        plt.savefig('newDeaths.png')
 
+        plt.figure(figsize=(12, 5))
+        plt.xticks(rotation=45)
+        plt.bar(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['Total Deaths'][::-1].astype('int'))
+        plt.tight_layout()
+        plt.savefig('totalDeaths.png')
+
+        plt.figure(figsize=(12, 5))
+        plt.xticks(rotation=45)
+        plt.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['New Cases'][::-1].astype('int'), '-o')
+        plt.ylim(ymin=0)
+        plt.tight_layout()
+        plt.savefig('newCases.png')
+
+        plt.figure(figsize=(12, 5))
+        plt.xticks(rotation=45)
+        plt.bar(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['Total Cases'][::-1].astype('int'))
+        plt.tight_layout()
+        plt.savefig('totalCases.png')
+
+        #data["tot_cases"] = data.tot_cases.apply(lambda x: "{:,}".format(x))
+        #data["new_case"] = data.new_case.apply(lambda x: "{:,}".format(x))
+        #data["tot_death"] = data.tot_death.apply(lambda x: "{:,}".format(x))
+        #data["new_death"] = data.new_death.apply(lambda x: "{:,}".format(x))
 
         post = "This is a post"
         return render_template('datasearchstate.html', dataColumns=data.keys(), dataItems=data.to_numpy(), post=post)
