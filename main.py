@@ -6,7 +6,11 @@ from IPython.display import HTML
 from numpy import math
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 # This function returns a dataframe of the most recent covid data
 
@@ -87,6 +91,14 @@ def datafunc():
         plt.figure(figsize=(12, 4))
         plt.xticks(rotation=45)
         plt.style.use('dark_background')
+        plt.tight_layout()
+        plt.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['Total Cases'][::-1].astype('int'))
+        plt.savefig('./static/nothing.png')
+
+        plt.figure(figsize=(12, 4))
+        plt.xticks(rotation=45)
+        plt.style.use('dark_background')
         plt.plot(data.sort_values('Date', ascending=True).reset_index(
             drop=True)['Date'], data['Total Cases'][::-1].astype('int'))
         plt.tight_layout()
@@ -118,10 +130,10 @@ def datafunc():
         plt.tight_layout()
         plt.savefig('./static/newCases.png')
 
-        #data["tot_cases"] = data.tot_cases.apply(lambda x: "{:,}".format(x))
-        #data["new_case"] = data.new_case.apply(lambda x: "{:,}".format(x))
-        #data["tot_death"] = data.tot_death.apply(lambda x: "{:,}".format(x))
-        #data["new_death"] = data.new_death.apply(lambda x: "{:,}".format(x))
+        data["Total Cases"] = data["Total Cases"].apply(lambda x: "{:,}".format(x))
+        data["New Cases"] = data["New Cases"].apply(lambda x: "{:,}".format(x))
+        data["Total Deaths"] = data["Total Deaths"].apply(lambda x: "{:,}".format(x))
+        data["New Deaths"] = data["New Deaths"].apply(lambda x: "{:,}".format(x))
 
         post = "This is a post"
         return render_template('datasearchstate.html', dataColumns=data.keys(), dataItems=data.to_numpy(), post=post)
