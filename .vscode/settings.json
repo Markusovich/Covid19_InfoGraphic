@@ -1,4 +1,12 @@
 {
-    "python.pythonPath": "/Users/markusovich/Covid19_InfoGraphic/venv/bin/python3",
-    "git.ignoreLimitWarning": true
+    "python.pythonPath": "c:\\users\\tysbi\\appdata\\local\\programs\\python\\python39\\python.exe",
+    "git.ignoreLimitWarning": true,
+    "python.testing.pytestArgs": [
+        "."
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": false
 }
