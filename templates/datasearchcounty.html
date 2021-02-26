@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block head %}
-<title>State Data</title>
+<title>County Data</title>
 {% endblock %}
 
 {% block body %}
@@ -10,11 +10,11 @@
 <h1 style="color: white; text-shadow: black 0px 0px 10px;">Help Yourself.</h1>
 <br>
 <br>
-<form action="/datasearchstate" style="background-color: white; width: 40%; border-radius: 10px; padding: 20px;"
+<form action="/datasearchcounty" style="background-color: white; width: 40%; border-radius: 10px; padding: 20px;"
     method="POST">
     <div class="form-group">
-        <label for="state">Select State</label>
-        <select class="form-control" id="state" name="state" value="{{ request.form['state'] }}">
+        <label for="state_name">Select State</label>
+        <select class="form-control" id="state_name" name="state_name" value="{{ request.form['state_name'] }}">
             <option value="AL"> Alabama </option>
             <option value="AK"> Alaska </option>
             <option value="AZ"> Arizona </option>
@@ -68,6 +68,7 @@
             <option value="WY"> Wyoming </option>
         </select>
     </div>
+    <!--
     <div class="form-group">
         <label for="shuffle">Order By</label>
         <select class="form-control" id="shuffle" name="shuffle" value="{{ request.form['shuffle'] }}">
@@ -78,10 +79,12 @@
             <option value="new_death"> New Deaths </option>
         </select>
     </div>
+    -->
     <div class="form-group">
         <label for="daterange">Date Range</label><br>
         <input class="form-control" type="text" name="daterange" placeholder="YYYY-MM-DD to YYYY-MM-DD" required>
     </div>
+
     <button type="submit" class="btn btn-primary">Search</button>
 </form>
 <br>
@@ -89,7 +92,9 @@
 <br>
 <br>
 
+
 {% if post %}
+<!--
 <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
     <div class="carousel-inner">
         <div class="carousel-item active">
@@ -122,6 +127,7 @@
         <span class="sr-only">Next</span>
     </a>
 </div>
+-->
 <br><br><br><br><br>
 <div
     style="overflow-y: scroll; height:350px; background-color: black; border: 5px solid #900000 ; border-radius: 10px;">

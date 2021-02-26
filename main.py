@@ -13,6 +13,7 @@ import json
 from geojson import load
 import plotly.express as px
 import folium
+import os.path
 matplotlib.use('Agg')
 app = Flask(__name__)
 
@@ -21,9 +22,9 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-# This function returns a dataframe (dataset) of the most recent covid data
+# This function returns a dataframe (dataset) of the most recent state covid data
 # Everytime your run the project, a new dataset is always pulled from data.cdc.gov
-def getData():
+def getStateData():
     # Importing data set to client variable
     client = Socrata("data.cdc.gov", None)
     results = client.get("9mfq-cb36", limit=100000)
@@ -47,11 +48,67 @@ def getData():
     return results_df
 
 
+# Here we get the data by county
+def getCountyData():
+
+    client = Socrata("data.cdc.gov", None)
+    results = client.get("kn79-hsxy", limit=5000)
+    results_df = pd.DataFrame.from_records(results)
+    results_df = results_df.drop(
+        ['start_week', 'end_week', 'county_fips_code', 'urban_rural_code', 'total_death', 'footnote'], 1)
+    results_df = results_df.dropna().reset_index(drop=True)
+
+    if os.path.isfile('countyFile'):
+        with open('countyFile', 'a') as f:
+            if results_df['data_as_of'][0] > pd.read_csv("countyFile")['data_as_of'][0]:
+                results_df.to_csv(f, header=False, index=False)
+    else:
+        with open('countyFile', 'a') as f:
+            results_df.to_csv(f, header=True, index=False)
+
+    results_df = pd.read_csv("countyFile")
+    results_df['data_as_of'] = pd.to_datetime(
+                results_df['data_as_of'])
+    results_df['data_as_of'] = results_df['data_as_of'].dt.strftime(
+        '%Y-%m-%d')
+    
+    return results_df
+
+
 # Homepage. This is what the user sees when they click on the link to our website.
 # The home.html file is rendered when the website route is at /
 @app.route('/')
 def homefunc():
     return render_template('home.html')
+
+
+@app.route('/datasearchcounty', methods=['GET', 'POST'])
+def datafunc2():
+    
+    if request.method == 'POST':
+        state = request.form['state_name']
+        if state != "None":
+            data = getCountyData()
+            data = data[data['state_name'] == state]
+        else:
+            data = getCountyData()
+            pass
+
+        #County selection goes here
+
+        # Getting date range input
+        daterange = request.form['daterange']
+        daterange = daterange.split(" to ")
+        startDate = daterange[0]
+        endDate = daterange[1]
+        # Getting rid of all dates that fall outside of our range in the dataset
+        data = data[data.data_as_of >= startDate]
+        data = data[data.data_as_of < endDate]
+
+        post = "This is a post"
+        return render_template('datasearchcounty.html', dataColumns=data.keys(), dataItems=data.to_numpy(), post=post)
+    else:
+        return render_template('datasearchcounty.html')
 
 
 # This is the code that is executed when the website route is /datasearchstate
@@ -66,10 +123,10 @@ def datafunc():
         # This was we are narrowing our dataset
         state = request.form['state']
         if state != "None":
-            data = getData()
+            data = getStateData()
             data = data[data['state'] == state]
         else:
-            data = getData()
+            data = getStateData()
             pass
 
         # Getting date range input
@@ -213,7 +270,7 @@ def datafunc():
 # Tylers route, he is working on this page
 @app.route('/datavisualization')
 # generates a choropleth map based on the input data, defaults to total number of deaths
-def genMap(data= getData(), data_to_display ='deaths'):
+def genMap(data= getStateData(), data_to_display ='deaths'):
     # opens a geojson file containing county outlines
     with open('us_states.geojson') as file:
         states = load(file)
