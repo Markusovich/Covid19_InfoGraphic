@@ -87,14 +87,11 @@ def datafunc2():
     
     if request.method == 'POST':
         state = request.form['state_name']
-        if state != "None":
-            data = getCountyData()
-            data = data[data['state_name'] == state]
-        else:
-            data = getCountyData()
-            pass
+        data = getCountyData()
+        data = data[data['state_name'] == state].reset_index(drop=True)
 
-        #County selection goes here
+        county = request.form['county']
+        data = data[data['county_name'] == county].reset_index(drop=True)
 
         # Getting date range input
         daterange = request.form['daterange']
@@ -104,6 +101,39 @@ def datafunc2():
         # Getting rid of all dates that fall outside of our range in the dataset
         data = data[data.data_as_of >= startDate]
         data = data[data.data_as_of < endDate]
+
+        data[["covid_death"]] = data[["covid_death"]].astype('float')
+        data[["covid_death"]] = data[["covid_death"]].astype('int')
+        data.reset_index(drop=True, inplace=True)
+
+        data = data.rename(columns={"data_as_of": "Date", "state_name": "State", "county_name": "County",
+                                    "covid_death": "Total Covid Deaths"})
+
+        # Here we create python graphs and save them to png files so that they can be displayed on html
+
+        plt.figure(figsize=(12, 4))
+        plt.xticks(rotation=45)
+        plt.style.use('dark_background')
+        plt.tight_layout()
+        plt.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['Total Covid Deaths'][::-1].astype('int'))
+        plt.savefig('./static/nothing2.png')
+
+        fig, ax = plt.subplots(figsize=(12, 4))
+        plt.xticks(rotation=25)
+        plt.style.use('dark_background')
+        ax.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['Total Covid Deaths'][::-1].astype('int'))
+        plt.tight_layout()
+        if len(data) > 14 and len(data) < 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+        if len(data) >= 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1)) 
+        else:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+        plt.savefig('./static/totalDeaths_county.png')
 
         post = "This is a post"
         return render_template('datasearchcounty.html', dataColumns=data.keys(), dataItems=data.to_numpy(), post=post)
