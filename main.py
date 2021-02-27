@@ -69,8 +69,6 @@ def getCountyData():
     results_df = pd.read_csv("countyFile")
     results_df['data_as_of'] = pd.to_datetime(
                 results_df['data_as_of'])
-    results_df['data_as_of'] = results_df['data_as_of'].dt.strftime(
-        '%Y-%m-%d')
     
     return results_df
 
@@ -110,7 +108,6 @@ def datafunc2():
                                     "covid_death": "Total Covid Deaths"})
 
         # Here we create python graphs and save them to png files so that they can be displayed on html
-
         plt.figure(figsize=(12, 4))
         plt.xticks(rotation=45)
         plt.style.use('dark_background')
@@ -123,17 +120,23 @@ def datafunc2():
         plt.xticks(rotation=25)
         plt.style.use('dark_background')
         ax.plot(data.sort_values('Date', ascending=True).reset_index(
-            drop=True)['Date'], data['Total Covid Deaths'][::-1].astype('int'))
+            drop=True)['Date'], data['Total Covid Deaths'][::-1].astype('int'), '-o')
         plt.tight_layout()
         if len(data) > 14 and len(data) < 90:
+            print("Shit")
             ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
             ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/totalDeaths_county.png')
         if len(data) >= 90:
             ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
-            ax.xaxis.set_minor_locator(plt.MultipleLocator(1)) 
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/totalDeaths_county.png')
         else:
+            print("Nice")
             ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
-        plt.savefig('./static/totalDeaths_county.png')
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/totalDeaths_county.png')
+
 
         post = "This is a post"
         return render_template('datasearchcounty.html', dataColumns=data.keys(), dataItems=data.to_numpy(), post=post)
