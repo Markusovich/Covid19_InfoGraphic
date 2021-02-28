@@ -14,6 +14,9 @@ from geojson import load
 import plotly.express as px
 import folium
 import os.path
+import io
+import requests
+import re
 matplotlib.use('Agg')
 app = Flask(__name__)
 
@@ -46,6 +49,36 @@ def getStateData():
 
     # Our function returns the dataset containing all covid data that we will work with
     return results_df
+
+def getCountyCaseData():
+    url = "https://static.usafacts.org/public/data/covid-19/covid_confirmed_usafacts.csv?_ga=2.222696091.1498587340.1614544717-1622888718.1614364715"
+    s = requests.get(url).content
+    known_cases_df = pd.read_csv(io.StringIO(s.decode('utf-8')))
+    known_cases_df = known_cases_df.drop(
+        ['countyFIPS', 'StateFIPS'], 1)
+    known_cases_df = known_cases_df[known_cases_df["County Name"] != "Statewide Unallocated"]
+    known_cases_df = known_cases_df.dropna().reset_index(drop=True)
+
+    for key in known_cases_df.keys():
+        if re.match("[0-9]-[0-9]-[0-9]", key):
+            known_cases_df[key] = pd.to_datetime(known_cases_df[key])
+
+    return known_cases_df
+
+def getCountyDeathData():
+    url2 = "https://static.usafacts.org/public/data/covid-19/covid_deaths_usafacts.csv?_ga=2.8737845.1498587340.1614544717-1622888718.1614364715"
+    s2 = requests.get(url2).content
+    deaths_df = pd.read_csv(io.StringIO(s2.decode('utf-8')))
+    deaths_df = deaths_df.drop(
+        ['countyFIPS', 'StateFIPS'], 1)
+    deaths_df = deaths_df[deaths_df["County Name"] != "Statewide Unallocated"]
+    deaths_df = deaths_df.dropna().reset_index(drop=True)
+
+    for key in deaths_df.keys():
+        if re.match("[0-9]-[0-9]-[0-9]", key):
+            deaths_df[key] = pd.to_datetime(deaths_df[key])
+
+    return deaths_df
 
 
 # Here we get the data by county
