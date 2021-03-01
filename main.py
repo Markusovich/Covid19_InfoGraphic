@@ -50,6 +50,7 @@ def getStateData():
     # Our function returns the dataset containing all covid data that we will work with
     return results_df
 
+
 def getCountyCaseData():
     url = "https://static.usafacts.org/public/data/covid-19/covid_confirmed_usafacts.csv?_ga=2.222696091.1498587340.1614544717-1622888718.1614364715"
     s = requests.get(url).content
@@ -58,10 +59,6 @@ def getCountyCaseData():
         ['countyFIPS', 'StateFIPS'], 1)
     known_cases_df = known_cases_df[known_cases_df["County Name"] != "Statewide Unallocated"]
     known_cases_df = known_cases_df.dropna().reset_index(drop=True)
-
-    for key in known_cases_df.keys():
-        if re.match("[0-9]-[0-9]-[0-9]", key):
-            known_cases_df[key] = pd.to_datetime(known_cases_df[key])
 
     return known_cases_df
 
@@ -74,37 +71,7 @@ def getCountyDeathData():
     deaths_df = deaths_df[deaths_df["County Name"] != "Statewide Unallocated"]
     deaths_df = deaths_df.dropna().reset_index(drop=True)
 
-    for key in deaths_df.keys():
-        if re.match("[0-9]-[0-9]-[0-9]", key):
-            deaths_df[key] = pd.to_datetime(deaths_df[key])
-
     return deaths_df
-
-
-# Here we get the data by county
-def getCountyData():
-
-    client = Socrata("data.cdc.gov", None)
-    results = client.get("kn79-hsxy", limit=5000)
-    results_df = pd.DataFrame.from_records(results)
-    results_df = results_df.drop(
-        ['start_week', 'end_week', 'county_fips_code', 'urban_rural_code', 'total_death', 'footnote'], 1)
-    results_df = results_df.dropna().reset_index(drop=True)
-
-    if os.path.isfile('countyFile'):
-        with open('countyFile', 'a') as f:
-            if results_df['data_as_of'][0] > pd.read_csv("countyFile")['data_as_of'][0]:
-                results_df.to_csv(f, header=False, index=False)
-    else:
-        with open('countyFile', 'a') as f:
-            results_df.to_csv(f, header=True, index=False)
-
-    results_df = pd.read_csv("countyFile")
-    results_df['data_as_of'] = pd.to_datetime(
-                results_df['data_as_of'])
-    
-    return results_df
-
 
 # Homepage. This is what the user sees when they click on the link to our website.
 # The home.html file is rendered when the website route is at /
@@ -112,67 +79,169 @@ def getCountyData():
 def homefunc():
     return render_template('home.html')
 
-
 @app.route('/datasearchcounty', methods=['GET', 'POST'])
 def datafunc2():
     
     if request.method == 'POST':
         state = request.form['state_name']
-        data = getCountyData()
-        data = data[data['state_name'] == state].reset_index(drop=True)
+        caseData = getCountyCaseData()
+        deathData = getCountyDeathData()
+
+        caseData = caseData[caseData['State'] == state].reset_index(drop=True)
+        deathData = deathData[deathData['State'] == state].reset_index(drop=True)
 
         county = request.form['county']
-        data = data[data['county_name'] == county].reset_index(drop=True)
+        county = county + " "
+        caseData = caseData[caseData['County Name'] == county].reset_index(drop=True)
+        deathData = deathData[deathData['County Name'] == county].reset_index(drop=True)
+
+        caseData = caseData.drop(['State', 'County Name'], axis=1)
+        deathData = deathData.drop(['State', 'County Name'], axis=1)
 
         # Getting date range input
         daterange = request.form['daterange']
         daterange = daterange.split(" to ")
         startDate = daterange[0]
         endDate = daterange[1]
+
+
         # Getting rid of all dates that fall outside of our range in the dataset
-        data = data[data.data_as_of >= startDate]
-        data = data[data.data_as_of < endDate]
+        for key in caseData.keys():
+            if key < startDate or key >= endDate:
+                caseData = caseData.drop([key], axis=1)
 
-        data[["covid_death"]] = data[["covid_death"]].astype('float')
-        data[["covid_death"]] = data[["covid_death"]].astype('int')
-        data.reset_index(drop=True, inplace=True)
+        for key in deathData.keys():
+            if key < startDate or key >= endDate:
+                deathData = deathData.drop([key], axis=1)
 
-        data = data.rename(columns={"data_as_of": "Date", "state_name": "State", "county_name": "County",
-                                    "covid_death": "Total Covid Deaths"})
+        caseData = caseData[caseData.columns[::-1]]
+        deathData = deathData[deathData.columns[::-1]]
+
+        numarr = [None] * 10000
+        i = 0
+        for key in caseData:
+            numarr[i] = caseData.at[0, key]
+            i = i+1
+
+        numarr2 = [None] * 10000
+        i2 = 0
+        for key in deathData:
+            numarr2[i2] = deathData.at[0, key]
+            i2 = i2+1
+
+        nc = {}
+        nd = {}
+        j = 0
+        for key in caseData:
+            if numarr[j+1] == None:
+                break
+            nc[key] = numarr[j] - numarr[j+1]
+            j = j + 1
+        newCaseData = pd.DataFrame(list(nc.items()), columns=['Date', 'Value'])
+
+        j = 0
+        for key in deathData:
+            if numarr2[j+1] == None:
+                break
+            nd[key] = numarr2[j] - numarr2[j+1]
+            j = j + 1
+        newDeathData = pd.DataFrame(list(nd.items()), columns=['Date', 'Value'])
+
 
         # Here we create python graphs and save them to png files so that they can be displayed on html
         plt.figure(figsize=(12, 4))
         plt.xticks(rotation=45)
         plt.style.use('dark_background')
         plt.tight_layout()
-        plt.plot(data.sort_values('Date', ascending=True).reset_index(
-            drop=True)['Date'], data['Total Covid Deaths'][::-1].astype('int'))
+        plt.plot(newCaseData['Date'], newCaseData['Value'])
         plt.savefig('./static/nothing2.png')
 
+        caseData = caseData[caseData.columns[::-1]]
         fig, ax = plt.subplots(figsize=(12, 4))
         plt.xticks(rotation=25)
         plt.style.use('dark_background')
-        ax.plot(data.sort_values('Date', ascending=True).reset_index(
-            drop=True)['Date'], data['Total Covid Deaths'][::-1].astype('int'), '-o')
+        ax.plot(pd.to_datetime(caseData.keys()), caseData.iloc[0])
         plt.tight_layout()
-        if len(data) > 14 and len(data) < 90:
-            print("Shit")
+        if len(caseData.columns) > 14 and len(caseData.columns) < 90:
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            plt.savefig('./static/totalCountyCases.png')
+        if len(caseData.columns) >= 90:
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
+            plt.savefig('./static/totalCountyCases.png')  
+        else:
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            plt.savefig('./static/totalCountyCases.png')
+
+        newCaseData = newCaseData[newCaseData.columns[::-1]]
+        fig, ax = plt.subplots(figsize=(12, 4))
+        plt.xticks(rotation=25)
+        plt.style.use('dark_background')
+        ax.plot(pd.to_datetime(newCaseData.reset_index(
+            drop=True)['Date']), newCaseData['Value'], '-o')
+        plt.tight_layout()
+        if len(newCaseData) > 14 and len(newCaseData) < 90:
             ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
             ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/totalDeaths_county.png')
-        if len(data) >= 90:
+            plt.savefig('./static/newCountyCases.png')
+        if len(newCaseData) >= 90:
             ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
             ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/totalDeaths_county.png')
+            plt.savefig('./static/newCountyCases.png')  
         else:
-            print("Nice")
             ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
             ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/totalDeaths_county.png')
+            plt.savefig('./static/newCountyCases.png')
+
+        deathData = deathData[deathData.columns[::-1]]
+        fig, ax = plt.subplots(figsize=(12, 4))
+        plt.xticks(rotation=25)
+        plt.style.use('dark_background')
+        ax.plot(pd.to_datetime(deathData.keys()), deathData.iloc[0])
+        plt.ylim(ymin=0)
+        plt.tight_layout()
+        if len(deathData.columns) > 14 and len(deathData.columns) < 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/totalCountyDeaths.png')
+        if len(deathData.columns) >= 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/totalCountyDeaths.png')  
+        else:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/totalCountyDeaths.png')
+
+        newDeathData = newDeathData[newDeathData.columns[::-1]]
+        fig, ax = plt.subplots(figsize=(12, 4))
+        plt.xticks(rotation=25)
+        plt.style.use('dark_background')
+        ax.plot(pd.to_datetime(newDeathData.reset_index(
+            drop=True)['Date']), newDeathData['Value'], '-o')
+        plt.ylim(ymin=0)
+        plt.tight_layout()
+        if len(newDeathData) > 14 and len(newDeathData) < 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/newCountyDeaths.png')
+        if len(newDeathData) >= 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/newCountyDeaths.png')  
+        else:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/newCountyDeaths.png')
 
 
         post = "This is a post"
-        return render_template('datasearchcounty.html', dataColumns=data.keys(), dataItems=data.to_numpy(), post=post)
+        return render_template('datasearchcounty.html', post=post)
+        '''
+        return render_template('datasearchcounty.html')
+        '''
     else:
         return render_template('datasearchcounty.html')
 
