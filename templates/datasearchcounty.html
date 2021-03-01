@@ -137,25 +137,13 @@
     </div>
     <div class="form-group">
         <label for="county">Select County</label>
-        <select class="form-control" name="county" id="county">
+        <select class="form-control" name="county" id="county" value="{{ request.form['county'] }}">
             <option value="" disabled selected>Select</option>
         </select>
     </div>
-    <!--
-    <div class="form-group">
-        <label for="shuffle">Order By</label>
-        <select class="form-control" id="shuffle" name="shuffle" value="{{ request.form['shuffle'] }}">
-            <option value="None"> Date </option>
-            <option value="tot_cases"> Total Cases </option>
-            <option value="new_case"> New Cases </option>
-            <option value="tot_death"> Total Deaths </option>
-            <option value="new_death"> New Deaths </option>
-        </select>
-    </div>
--->
     <div class="form-group">
         <label for="daterange">Date Range</label><br>
-        <input class="form-control" type="text" name="daterange" placeholder="YYYY-MM-DD to YYYY-MM-DD" required>
+        <input class="form-control" type="text" value="{{ request.form['daterange'] }}" name="daterange" placeholder="YYYY-MM-DD to YYYY-MM-DD" required>
     </div>
 
     <button type="submit" class="btn btn-primary">Search</button>
