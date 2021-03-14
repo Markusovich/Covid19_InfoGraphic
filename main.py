@@ -17,6 +17,7 @@ import os.path
 import io
 import requests
 import re
+import folium
 matplotlib.use('Agg')
 app = Flask(__name__)
 
@@ -359,7 +360,7 @@ def datafunc():
         if len(data) >= 90:
             ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
             ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/newDeaths.png')  
+            plt.savefig('./static/newDeaths.png')
         else:
             ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
             plt.savefig('./static/newDeaths.png')
@@ -400,47 +401,115 @@ def datafunc():
         # If we load the page then this file shows up
         return render_template('datasearchstate.html')
 
+@app.route('/datavisualizationstate', methods=['GET', 'POST'])
+def base():
+    if request.method == 'POST':
 
-# Tylers route, he is working on this page
-@app.route('/datavisualization')
-# generates a choropleth map based on the input data, defaults to total number of deaths
-def genMap(data= getStateData(), data_to_display ='deaths'):
-    # opens a geojson file containing county outlines
-    with open('us_states.geojson') as file:
-        states = load(file)
+        searchby = request.form['searchBy']
+        data = getStateData()
 
-    map_data = pd.DataFrame()
-    map_data["stateFIPS"] = data["stateFIPS"].astype(str)
-    map_data["state_name"] = data["state_name"]
+        # Getting date range input
+        daterange = request.form['daterange']
+        startDate = daterange.split(" to ")[0]
+        endDate = daterange.split(" to ")[1]
+        # Getting rid of all dates that fall outside of our range in the dataset
+        data = data[data.submission_date >= startDate]
+        data = data[data.submission_date <= endDate]
 
-    # pads 'stateFIPS' to the correct length for states with single digit FIPS codes
-    for i, row in map_data.iterrows():
-        if len(map_data["stateFIPS"].iloc[i]) < 5:
-            map_data["stateFIPS"].iloc[i] = "0" + map_data["stateFIPS"].iloc[i]
+        # Replacing all null values as 0
+        data = data.fillna(0)
+        # Changing columns to difference datatype so we can manipulate the numbers
+        data[["tot_cases", "new_case", "tot_death", "new_death"]] = data[[
+            "tot_cases", "new_case", "tot_death", "new_death"]].astype('float')
+        data[["tot_cases", "new_case", "tot_death", "new_death"]] = data[[
+            "tot_cases", "new_case", "tot_death", "new_death"]].astype('int')
 
-    if data_to_display == 'deaths':
-        map_data["Deaths"] = data[data.columns[len(data.columns) - 1]].astype(int)
-        scale = (0, 100)
-        color_label = "Deaths"
-        color_scale = "reds"
+        data.reset_index(drop=True, inplace=True)
 
-    elif data_to_display == 'cases':
-        map_data["Cases"] = data[data.columns[len(data.columns) - 1]].astype(int)
-        scale = (0, 1500)
-        color_label = "Cases"
-        color_scale = "blues"
+        statePopulations = {'state': ["AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", 
+          "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", 
+          "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", 
+          "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", 
+          "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"], 
+          'population': [724357,4934190,3033950,7520100,39613500,5893630,3552820,714153,990334,21944600,10830000,
+          1406430,3167970,1860120,12569300,6805660,2917220,4480710,4627000,6912240,6065440,
+          1354520,9992430,5706400,6169040,2966410,1085000,10701000,770026,1952000,1372200,
+          8874520,2105000,3185790,19300000,11714600,3990440,4289440,12804100,1061510,5277830,
+          896581,6944260,29730300,3310770,8603980,623251,7796940,5852490,1767860,581075]}
 
-    # escape for unsupported input
+        data = data.rename(columns={"tot_cases": "Total Cases", "new_case": "New Cases", "tot_death": "Total Deaths", "new_death": "New Deaths"})
+
+        states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA", 
+          "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
+          "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", 
+          "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", 
+          "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
+        data = data[data['state'].isin(states)]
+
+        if searchby == 'New Cases' or searchby == 'New Deaths':
+            data = data.groupby(['state'], as_index=False).sum([searchby])
+            data = data[["state", searchby]]
+        else:
+            if searchby == 'Cases per 100,000':
+                data = data.groupby(['state'], as_index=False).sum(['Total Cases'])
+                data = data.rename(columns={"Total Cases": "Cases per 100,000"})
+                data = data[["state", 'Cases per 100,000']]
+                data['Cases per 100,000'] = (data['Cases per 100,000'] / statePopulations['population']) * 100000
+                searchby = 'Cases per 100,000'
+            else:
+                data = data.groupby(['state'], as_index=False).sum(['Total Deaths'])
+                data = data.rename(columns={"Total Deaths": "Deaths per 100,000"})
+                data = data[["state", 'Deaths per 100,000']]
+                data['Deaths per 100,000'] = (data['Deaths per 100,000'] / statePopulations['population']) * 100000
+                searchby = 'Deaths per 100,000'
+
+        url = (
+            "https://raw.githubusercontent.com/python-visualization/folium/master/examples/data"
+        )
+        state_geo = f"{url}/us-states.json"
+
+        m = folium.Map(width=1000, height=600, location=[39.8283, -98.5795], zoom_start=4)
+
+        folium.Choropleth(
+            geo_data=state_geo,
+            name="choropleth",
+            data=data,
+            columns=["state", searchby],
+            key_on="feature.id",
+            fill_color="YlOrRd",
+            fill_opacity=0.7,
+            line_opacity=0.2,
+            legend_name=searchby,
+        ).add_to(m)
+
+        style_function = lambda x: {'fillColor': '#ffffff', 
+                                    'color':'#000000', 
+                                    'fillOpacity': 0.1, 
+                                    'weight': 0.1}
+        highlight_function = lambda x: {'fillColor': '#000000', 
+                                        'color':'#000000', 
+                                        'fillOpacity': 0.50, 
+                                        'weight': 0.1}
+
+
+        NIL = folium.features.GeoJson(
+            state_geo,
+            style_function=style_function,
+            control=False,
+            highlight_function=highlight_function,
+            tooltip=folium.features.GeoJsonTooltip(
+                fields=["name"],
+                aliases=[''],
+                style=("background-color: white; color: #333333; font-family: arial; font-size: 12px; padding: 10px;") 
+            )
+        ).add_to(m)
+
+        m.add_child(NIL)
+        m.keep_in_front(NIL)
+
+
+        folium.LayerControl().add_to(m)
+        m.save("templates/map.html")
+        return render_template('displaymap.html', searchby=searchby, daterange=daterange)
     else:
-        return
-
-    # generates a county level choropleth map of the United States
-    fig = plotly.express.choropleth(map_data, home=states, locations='stateFIPS', color=color_label,
-                                    color_continuous_scale=color_scale, featureidkey='properties.GEOID',
-                                    scope="usa", range_color=scale,  hover_data=["state_name"])
-
-    # adjusts the map's margins and disables the ability to drag it
-    fig.update_layout(height=300, margin={"r": 15, "t": 15, "l": 15, "b": 15})
-    fig.show()
-
-    return render_template('datavisualization.html')
+        return render_template('datavisualizationstate.html')
