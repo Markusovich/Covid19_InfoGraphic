@@ -1,15 +1,10 @@
 {% extends 'base.html' %}
 
 {% block head %}
-<title>State Data</title>
+<title>State Graph</title>
 {% endblock %}
 
 {% block body %}
-<br>
-<br>
-<h1 style="color: white; text-shadow: black 0px 0px 10px;">Help Yourself.</h1>
-<br>
-<br>
 <form action="/datasearchstate" style="background-color: white; width: 40%; border-radius: 10px; padding: 20px;"
     method="POST">
     <div class="form-group">
@@ -82,7 +77,10 @@
         <label for="daterange">Date Range</label><br>
         <input class="form-control" type="text" name="daterange" placeholder="YYYY-MM-DD to YYYY-MM-DD" required>
     </div>
-    <button type="submit" class="btn btn-primary">Search</button>
+    <button type="submit" class="btn btn-outline-danger" onclick="loadingFunction()">Search</button><br><br><span
+        class="spinner-border text-danger" id="loading" style="width: 3rem; height: 3rem; display:none;" role="status">
+        <span class="sr-only">Loading...</span>
+    </span>
 </form>
 <br>
 <br>

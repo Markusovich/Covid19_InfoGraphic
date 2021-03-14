@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>County Visualization</title>
+{% endblock %}
+
+{% block body %}
+<form action="/datavisualizationcounty" style="background-color: white; width: 40%; border-radius: 10px; padding: 20px;"
+    method="POST">
+    <div class="form-group">
+        <label for="searchBy">Search By</label>
+        <select class="form-control" id="searchBy" name="searchBy" required>
+            <option value="Cases" selected> Cases </option>
+            <option value="Deaths"> Deaths </option>
+            <option value="Cases per 100,000"> Cases per 100,000 </option>
+            <option value="Deaths per 100,000"> Deaths per 100,000 </option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="daterange">Date Range</label><br>
+        <input class="form-control" type="text" name="daterange" placeholder="YYYY-MM-DD to YYYY-MM-DD" required>
+    </div>
+    <button type="submit" class="btn btn-outline-danger" onclick="loadingFunction()">Search</button><br><br><span
+        class="spinner-border text-danger" id="loading" style="width: 3rem; height: 3rem; display:none;" role="status">
+        <span class="sr-only">Loading...</span>
+    </span>
+</form>
+{% endblock %}

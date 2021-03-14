@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -35,13 +34,16 @@
                     <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/datavisualization">Data Visualization</a>
+                    <a class="nav-link" href="/datavisualizationstate">State Visualization</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/datasearchstate">Data Search By State</a>
+                    <a class="nav-link" href="/datavisualizationcounty">County Visualization</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/datasearchcounty">Data Search By County</a>
+                    <a class="nav-link" href="/datasearchstate">State Graph</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/datasearchcounty">County Graph</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown"
@@ -107,6 +109,11 @@
             });
 
         });
+    </script>
+    <script>
+        function loadingFunction() {
+            document.getElementById("loading").style.display = "block";
+        }
     </script>
 </body>
 
