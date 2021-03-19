@@ -519,7 +519,8 @@ def base():
 
         folium.LayerControl().add_to(m)
         m.save("templates/map.html")
-        return render_template('displaymap.html', searchby=searchby, daterange=daterange)
+        return render_template('datavisualizationstate.html', searchby=searchby, daterange=daterange)
+        #return render_template('displaymap.html', searchby=searchby, daterange=daterange)
     else:
         return render_template('datavisualizationstate.html')
 
@@ -608,6 +609,10 @@ def base2():
 
         folium.LayerControl().add_to(m)
         m.save("templates/map.html")
-        return render_template('displaymap.html', searchby=searchby, daterange=daterange)
+        return render_template('datavisualizationcounty.html', searchby=searchby, daterange=daterange)
     else:
         return render_template('datavisualizationcounty.html')
+
+@app.route('/map')
+def loadmap():
+    return render_template('map.html')
