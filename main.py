@@ -616,3 +616,9 @@ def base2():
 @app.route('/map')
 def loadmap():
     return render_template('map.html')
+
+@app.route('/emptymap')
+def emptymap():
+    m = folium.Map(width=1000, height=600, location=[39.8283, -98.5795], zoom_start=4)
+    m.save("templates/emptymap.html")
+    return render_template('emptymap.html')

@@ -5,32 +5,48 @@
 {% endblock %}
 
 {% block body %}
-<form action="/datavisualizationstate" style="background-color: white; width: 30%; border-radius: 10px; padding: 20px;"
+<form class="form-inline" action="/datavisualizationstate"
+    style="background-color: white; width: 39%; border-radius: 10px; padding: 20px; position: absolute; left: 50%; -webkit-transform: translate(-50%); transform: translate(-50%);"
     method="POST">
-    <div class="form-group">
-        <label for="searchBy">Search By</label>
-        <select value="{{ request.form['searchBy'] }}" class="form-control" id="searchBy" name="searchBy" required>
-            <option value="New Cases" selected> Cases </option>
-            <option value="New Deaths"> Deaths </option>
-            <option value="Cases per 100,000"> Cases per 100,000 </option>
-            <option value="Deaths per 100,000"> Deaths per 100,000 </option>
+    <div class="form-group mx-sm-4">
+        <select class="form-control" id="searchBy" name="searchBy" required>
+            <option value="New Cases" {% if searchby %} {% if searchby == 'New Cases' %} selected {% endif %} {% else %}
+                selected {% endif %}> Cases </option>
+            <option value="New Deaths" {% if searchby %} {% if searchby == 'New Deaths' %} selected {% endif %}
+                {% endif %}> Deaths </option>
+            <option value="Cases per 100,000" {% if searchby %} {% if searchby == 'Cases per 100,000' %} selected
+                {% endif %} {% endif %}> Cases per 100,000 </option>
+            <option value="Deaths per 100,000" {% if searchby %} {% if searchby == 'Deaths per 100,000' %} selected
+                {% endif %} {% endif %}> Deaths per 100,000 </option>
         </select>
     </div>
-    <div class="form-group">
-        <label for="daterange">Date Range</label><br>
+    <div class="form-group mx-sm-4">
         <input value="{{ request.form['daterange'] }}" class="form-control" type="text" name="daterange"
             placeholder="YYYY-MM-DD to YYYY-MM-DD" required>
     </div>
-    <button type="submit" class="btn btn-outline-danger" onclick="loadingFunction()">Search</button><br><br><span
-        class="spinner-border text-danger" id="loading" style="width: 3rem; height: 3rem; display:none;" role="status">
-        <span class="sr-only">Loading...</span>
-    </span>
+    <div class="form-group mx-sm-4">
+        <button type="submit" class="btn btn-outline-danger" onclick="loadingFunction();">Search</button>
+    </div>
 </form>
+<br><br><br><br>
+<span class="spinner-border text-danger" id="loading" style="position: absolute; left: 48%; width: 3rem; height: 3rem; display:none;" role="status">
+    <span class="sr-only">Loading...</span>
+</span>
 {% if searchby %}
+<br>
 <h1 style="color: white; text-shadow: black 0px 0px 10px; text-align: center;">{{ searchby }} from {{ daterange }}
 </h1>
 <div style="position: absolute; left: 50%; -webkit-transform: translate(-50%); transform: translate(-50%);">
-    <iframe src="{{ url_for('loadmap') }}" height="600" width="1000" title="Iframe Example"></iframe>
+    <iframe src="{{ url_for('loadmap') }}" style="width:1000px; height:600px; border-radius: 20px; border: 0px;"
+        title="Iframe Example"></iframe>
+</div>
+{% else %}
+<br>
+<h1 style="color: white; text-shadow: black 0px 0px 10px; text-align: center;"><br></h1>
+<div style="position: absolute; left: 50%; -webkit-transform: translate(-50%); transform: translate(-50%);">
+    <iframe src="{{ url_for('emptymap') }}" style="width:1000px; height:600px; border-radius: 20px; border: 0px;"
+        title="Iframe Example"></iframe>
 </div>
 {% endif %}
+
 {% endblock %}
