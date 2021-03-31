@@ -249,7 +249,7 @@ def datafunc2():
 
 
         post = "This is a post"
-        return render_template('datasearchcounty.html', post=post)
+        return render_template('datasearchcounty.html', post=post, state=state, county=county)
         '''
         return render_template('datasearchcounty.html')
         '''
@@ -407,7 +407,7 @@ def datafunc():
         # Because we passed the dataset, we are then able to print it to the html file
         # The html file 'datasearchstate.html' gets the dataset and now the html file can print it
         post = "This is a post"
-        return render_template('datasearchstate.html', dataColumns=data.keys(), dataItems=data.to_numpy(), post=post)
+        return render_template('datasearchstate.html', dataColumns=data.keys(), dataItems=data.to_numpy(), post=post, state=state, shuffle=shuffle)
     else:
         # If we load the page then this file shows up
         return render_template('datasearchstate.html')

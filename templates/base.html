@@ -64,7 +64,7 @@
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container-lg">
         {% block body %} {% endblock %}
     </div>
 
@@ -83,6 +83,19 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script type="text/javascript">
+
+        var $el = $(".table-responsive");
+        function anim() {
+            var st = $el.scrollTop();
+            var sb = $el.prop("scrollHeight") - $el.innerHeight();
+            $el.animate({ scrollTop: st < sb / 2 ? sb : 0 }, 20000, anim);
+        }
+        function stop() {
+            $el.stop();
+        }
+        anim();
+        $el.hover(stop, anim);
+
         $(function () {
 
             $('input[name="daterange"]').daterangepicker({
@@ -105,7 +118,6 @@
     <script>
         function loadingFunction() {
             document.getElementById("loading").style.display = "block";
-            document.getElementById("loading2").style.display = "block";
         }
     </script>
 </body>
