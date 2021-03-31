@@ -24,6 +24,11 @@
         <input value="{{ request.form['daterange'] }}" class="form-control" type="text" name="daterange"
             placeholder="YYYY-MM-DD to YYYY-MM-DD" required>
     </div>
+    {% if invalidmessage %}
+    <div class="alert alert-danger" role="alert">
+        <strong>Error.</strong> Invalid date range, please try again.
+    </div>
+    {% endif %}
     <div class="form-group mx-sm-4">
         <button type="submit" class="btn btn-outline-danger" onclick="loadingFunction()">Search</button>
     </div>

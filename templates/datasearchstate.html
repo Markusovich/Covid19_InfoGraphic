@@ -156,6 +156,11 @@
                 <label for="daterange">Date Range</label><br>
                 <input class="form-control" value="{{ request.form['daterange'] }}" type="text" name="daterange"
                     placeholder="YYYY-MM-DD to YYYY-MM-DD" required>
+                {% if invalidmessage %}
+                <div class="alert alert-danger" role="alert">
+                    <strong>Error.</strong> Invalid date range, please try again.
+                </div>
+                {% endif %}
             </div>
             <button type="submit" class="btn btn-outline-danger"
                 onclick="loadingFunction()">Search</button><br><br><span class="spinner-border text-danger" id="loading"

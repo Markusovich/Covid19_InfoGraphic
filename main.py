@@ -90,6 +90,163 @@ def getCountyFIPS():
 def homefunc():
     return render_template('home.html')
 
+# This is the code that is executed when the website route is /datasearchstate
+@app.route('/datasearchstate', methods=['GET', 'POST'])
+def datafunc():
+
+    # If you submit the form in datasearchstate.html, then this code is executed
+    if request.method == 'POST':
+
+        # Getting the input from the state field in the form in datasearchstate.html
+        # Based on the state, we eliminate all other states from the dataset we get from data.cdc.gov
+        # This was we are narrowing our dataset
+        state = request.form['state']
+        if state != "None":
+            data = getStateData()
+            data = data[data['state'] == state]
+        else:
+            data = getStateData()
+            pass
+
+        # Getting date range input
+        daterange = request.form['daterange']
+        daterange = daterange.split(" to ")
+        startDate = daterange[0]
+        endDate = daterange[1]
+        # Getting rid of all dates that fall outside of our range in the dataset
+        data = data[data.submission_date >= startDate]
+        data = data[data.submission_date < endDate]
+        if data.empty:
+            return render_template('datasearchstate.html', invalidmessage="Error. Invalid date range.")
+
+        # Replacing all null values as 0
+        data = data.fillna(0)
+        # Changing columns to difference datatype so we can manipulate the numbers
+        data[["tot_cases", "new_case", "tot_death", "new_death"]] = data[[
+            "tot_cases", "new_case", "tot_death", "new_death"]].astype('float')
+        data[["tot_cases", "new_case", "tot_death", "new_death"]] = data[[
+            "tot_cases", "new_case", "tot_death", "new_death"]].astype('int')
+
+        data.reset_index(drop=True, inplace=True)
+
+        # Get the shuffle input, and order the dataset based on the shuffle input from the form
+        shuffle = request.form['shuffle']
+        if shuffle != "None":
+            for i in data.keys():
+                if shuffle == str(i):
+                    data = data.sort_values(by=[shuffle], ascending=False)
+                    break
+        else:
+            pass
+
+        # Here we rename the columns so that they make more sense
+        # For example 'Total Deaths' is easier to understand than 'tot_death'
+        data = data.rename(columns={"submission_date": "Date", "state": "State", "tot_cases": "Total Cases",
+                                    "new_case": "New Cases",
+                                    "tot_death": "Total Deaths",
+                                    "new_death": "New Deaths", })
+
+        
+        # Here we create python graphs and save them to png files so that they can be displayed on html
+        plt.figure(figsize=(12, 4))
+        plt.xticks(rotation=45)
+        plt.style.use('dark_background')
+        plt.tight_layout()
+        plt.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['Total Cases'][::-1].astype('int'))
+        plt.savefig('./static/nothing.png')
+
+        fig, ax = plt.subplots(figsize=(12, 4))
+        plt.xticks(rotation=25)
+        plt.style.use('dark_background')
+        ax.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['Total Cases'][::-1].astype('int'))
+        plt.tight_layout()
+        if len(data) > 14 and len(data) < 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/totalCases.png')
+        if len(data) >= 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/totalCases.png')  
+        else:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            plt.savefig('./static/totalCases.png')
+
+        fig, ax = plt.subplots(figsize=(12, 4))
+        plt.xticks(rotation=25)
+        plt.style.use('dark_background')
+        ax.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['Total Deaths'][::-1].astype('int'))
+        plt.tight_layout()
+        if len(data) > 14 and len(data) < 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/totalDeaths.png')
+        if len(data) >= 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/totalDeaths.png')  
+        else:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            plt.savefig('./static/totalDeaths.png')
+
+        fig, ax = plt.subplots(figsize=(12, 4))
+        plt.xticks(rotation=25)
+        plt.style.use('dark_background')
+        ax.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['New Deaths'][::-1].astype('int'), '-o')
+        plt.ylim(ymin=0)
+        plt.tight_layout()
+        if len(data) > 14 and len(data) < 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/newDeaths.png')
+        if len(data) >= 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/newDeaths.png')
+        else:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            plt.savefig('./static/newDeaths.png')
+
+        fig, ax = plt.subplots(figsize=(12, 4))
+        plt.xticks(rotation=25)
+        plt.style.use('dark_background')
+        ax.plot(data.sort_values('Date', ascending=True).reset_index(
+            drop=True)['Date'], data['New Cases'][::-1].astype('int'), '-o')
+        plt.ylim(ymin=0)
+        plt.tight_layout()
+        if len(data) > 14 and len(data) < 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/newCases.png')
+        if len(data) >= 90:
+            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
+            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+            plt.savefig('./static/newCases.png')  
+        else:
+            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
+            plt.savefig('./static/newCases.png')
+
+
+        # Adding commas to big numbers
+        
+        data["Total Cases"] = data["Total Cases"].apply(lambda x: "{:,}".format(x))
+        data["New Cases"] = data["New Cases"].apply(lambda x: "{:,}".format(x))
+        data["Total Deaths"] = data["Total Deaths"].apply(lambda x: "{:,}".format(x))
+        data["New Deaths"] = data["New Deaths"].apply(lambda x: "{:,}".format(x))
+
+        # Here we pass our dataset that we filtered based on the input parameters from the search form
+        # Because we passed the dataset, we are then able to print it to the html file
+        # The html file 'datasearchstate.html' gets the dataset and now the html file can print it
+        post = "This is a post"
+        return render_template('datasearchstate.html', dataColumns=data.keys(), dataItems=data.to_numpy(), post=post, state=state, shuffle=shuffle)
+    else:
+        # If we load the page then this file shows up
+        return render_template('datasearchstate.html')
+
 @app.route('/datasearchcounty', methods=['GET', 'POST'])
 def datafunc2():
     
@@ -127,6 +284,9 @@ def datafunc2():
 
         caseData = caseData[caseData.columns[::-1]]
         deathData = deathData[deathData.columns[::-1]]
+
+        if caseData.empty or deathData.empty:
+            return render_template('datasearchcounty.html', invalidmessage="Error. Invalid date range.")
 
         numarr = [None] * 10000
         i = 0
@@ -257,161 +417,6 @@ def datafunc2():
         return render_template('datasearchcounty.html')
 
 
-# This is the code that is executed when the website route is /datasearchstate
-@app.route('/datasearchstate', methods=['GET', 'POST'])
-def datafunc():
-
-    # If you submit the form in datasearchstate.html, then this code is executed
-    if request.method == 'POST':
-
-        # Getting the input from the state field in the form in datasearchstate.html
-        # Based on the state, we eliminate all other states from the dataset we get from data.cdc.gov
-        # This was we are narrowing our dataset
-        state = request.form['state']
-        if state != "None":
-            data = getStateData()
-            data = data[data['state'] == state]
-        else:
-            data = getStateData()
-            pass
-
-        # Getting date range input
-        daterange = request.form['daterange']
-        daterange = daterange.split(" to ")
-        startDate = daterange[0]
-        endDate = daterange[1]
-        # Getting rid of all dates that fall outside of our range in the dataset
-        data = data[data.submission_date >= startDate]
-        data = data[data.submission_date < endDate]
-
-        # Replacing all null values as 0
-        data = data.fillna(0)
-        # Changing columns to difference datatype so we can manipulate the numbers
-        data[["tot_cases", "new_case", "tot_death", "new_death"]] = data[[
-            "tot_cases", "new_case", "tot_death", "new_death"]].astype('float')
-        data[["tot_cases", "new_case", "tot_death", "new_death"]] = data[[
-            "tot_cases", "new_case", "tot_death", "new_death"]].astype('int')
-
-        data.reset_index(drop=True, inplace=True)
-
-        # Get the shuffle input, and order the dataset based on the shuffle input from the form
-        shuffle = request.form['shuffle']
-        if shuffle != "None":
-            for i in data.keys():
-                if shuffle == str(i):
-                    data = data.sort_values(by=[shuffle], ascending=False)
-                    break
-        else:
-            pass
-
-        # Here we rename the columns so that they make more sense
-        # For example 'Total Deaths' is easier to understand than 'tot_death'
-        data = data.rename(columns={"submission_date": "Date", "state": "State", "tot_cases": "Total Cases",
-                                    "new_case": "New Cases",
-                                    "tot_death": "Total Deaths",
-                                    "new_death": "New Deaths", })
-
-        
-        # Here we create python graphs and save them to png files so that they can be displayed on html
-        plt.figure(figsize=(12, 4))
-        plt.xticks(rotation=45)
-        plt.style.use('dark_background')
-        plt.tight_layout()
-        plt.plot(data.sort_values('Date', ascending=True).reset_index(
-            drop=True)['Date'], data['Total Cases'][::-1].astype('int'))
-        plt.savefig('./static/nothing.png')
-
-        fig, ax = plt.subplots(figsize=(12, 4))
-        plt.xticks(rotation=25)
-        plt.style.use('dark_background')
-        ax.plot(data.sort_values('Date', ascending=True).reset_index(
-            drop=True)['Date'], data['Total Cases'][::-1].astype('int'))
-        plt.tight_layout()
-        if len(data) > 14 and len(data) < 90:
-            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
-            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/totalCases.png')
-        if len(data) >= 90:
-            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
-            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/totalCases.png')  
-        else:
-            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
-            plt.savefig('./static/totalCases.png')
-
-        fig, ax = plt.subplots(figsize=(12, 4))
-        plt.xticks(rotation=25)
-        plt.style.use('dark_background')
-        ax.plot(data.sort_values('Date', ascending=True).reset_index(
-            drop=True)['Date'], data['Total Deaths'][::-1].astype('int'))
-        plt.tight_layout()
-        if len(data) > 14 and len(data) < 90:
-            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
-            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/totalDeaths.png')
-        if len(data) >= 90:
-            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
-            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/totalDeaths.png')  
-        else:
-            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
-            plt.savefig('./static/totalDeaths.png')
-
-        fig, ax = plt.subplots(figsize=(12, 4))
-        plt.xticks(rotation=25)
-        plt.style.use('dark_background')
-        ax.plot(data.sort_values('Date', ascending=True).reset_index(
-            drop=True)['Date'], data['New Deaths'][::-1].astype('int'), '-o')
-        plt.ylim(ymin=0)
-        plt.tight_layout()
-        if len(data) > 14 and len(data) < 90:
-            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
-            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/newDeaths.png')
-        if len(data) >= 90:
-            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
-            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/newDeaths.png')
-        else:
-            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
-            plt.savefig('./static/newDeaths.png')
-
-        fig, ax = plt.subplots(figsize=(12, 4))
-        plt.xticks(rotation=25)
-        plt.style.use('dark_background')
-        ax.plot(data.sort_values('Date', ascending=True).reset_index(
-            drop=True)['Date'], data['New Cases'][::-1].astype('int'), '-o')
-        plt.ylim(ymin=0)
-        plt.tight_layout()
-        if len(data) > 14 and len(data) < 90:
-            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
-            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/newCases.png')
-        if len(data) >= 90:
-            ax.xaxis.set_major_formatter(DateFormatter("%m/%Y"))
-            ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-            plt.savefig('./static/newCases.png')  
-        else:
-            ax.xaxis.set_major_formatter(DateFormatter("%d/%m/%Y"))
-            plt.savefig('./static/newCases.png')
-
-
-        # Adding commas to big numbers
-        
-        data["Total Cases"] = data["Total Cases"].apply(lambda x: "{:,}".format(x))
-        data["New Cases"] = data["New Cases"].apply(lambda x: "{:,}".format(x))
-        data["Total Deaths"] = data["Total Deaths"].apply(lambda x: "{:,}".format(x))
-        data["New Deaths"] = data["New Deaths"].apply(lambda x: "{:,}".format(x))
-
-        # Here we pass our dataset that we filtered based on the input parameters from the search form
-        # Because we passed the dataset, we are then able to print it to the html file
-        # The html file 'datasearchstate.html' gets the dataset and now the html file can print it
-        post = "This is a post"
-        return render_template('datasearchstate.html', dataColumns=data.keys(), dataItems=data.to_numpy(), post=post, state=state, shuffle=shuffle)
-    else:
-        # If we load the page then this file shows up
-        return render_template('datasearchstate.html')
-
 @app.route('/datavisualizationstate', methods=['GET', 'POST'])
 def base():
     if request.method == 'POST':
@@ -426,6 +431,9 @@ def base():
         # Getting rid of all dates that fall outside of our range in the dataset
         data = data[data.submission_date >= startDate]
         data = data[data.submission_date <= endDate]
+
+        if data.empty:
+            return render_template('datavisualizationcounty.html', invalidmessage="Error. Invalid date range.")
 
         # Replacing all null values as 0
         data = data.fillna(0)
@@ -544,6 +552,8 @@ def base2():
             for key in caseData.keys():
                 if key < startDate or key > endDate:
                     caseData = caseData.drop([key], axis=1)
+            if caseData.empty:
+                return render_template('datavisualizationstate.html', invalidmessage="Error. Invalid date range.")
             caseData['Value'] = caseData.iloc[:, -1] - caseData.iloc[:, 0]
             countyId = getCountyFIPS()
             data = pd.concat([countyId, caseData['Value']], axis=1, keys=['countyFIPS', 'Value'])
@@ -555,6 +565,8 @@ def base2():
             for key in deathData.keys():
                 if key < startDate or key > endDate:
                     deathData = deathData.drop([key], axis=1)
+            if deathData.empty:
+                return render_template('datavisualizationstate.html', invalidmessage="Error. Invalid date range.")
             deathData['Value'] = deathData.iloc[:, -1] - deathData.iloc[:, 0]
             countyId = getCountyFIPS()
             data = pd.concat([countyId, deathData['Value']], axis=1, keys=['countyFIPS', 'Value'])
