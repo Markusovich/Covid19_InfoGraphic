@@ -116,6 +116,7 @@ def datafunc():
         # Getting rid of all dates that fall outside of our range in the dataset
         data = data[data.submission_date >= startDate]
         data = data[data.submission_date < endDate]
+
         if data.empty:
             return render_template('datasearchstate.html', invalidmessage="Error. Invalid date range.")
 
@@ -527,8 +528,7 @@ def base():
 
         folium.LayerControl().add_to(m)
         m.save("templates/map.html")
-        return render_template('datavisualizationstate.html', searchby=searchby, daterange=daterange)
-        #return render_template('displaymap.html', searchby=searchby, daterange=daterange)
+        return render_template('datavisualizationstate.html', searchby=searchby, daterange=daterange, states=json.dumps(data['state'].tolist()), values=json.dumps(data[searchby].tolist()), searchby2=json.dumps(searchby))
     else:
         return render_template('datavisualizationstate.html')
 
