@@ -434,7 +434,7 @@ def base():
         data = data[data.submission_date <= endDate]
 
         if data.empty:
-            return render_template('datavisualizationcounty.html', invalidmessage="Error. Invalid date range.")
+            return render_template('datavisualizationstate.html', invalidmessage="Error. Invalid date range.")
 
         # Replacing all null values as 0
         data = data.fillna(0)
