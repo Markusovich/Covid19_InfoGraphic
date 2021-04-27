@@ -1,0 +1,19 @@
+{
+  "name": "covid19_infographic",
+  "version": "1.0.0",
+  "description": "Covid-19 continues to be an issue in the United States.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Markusovich/Covid19_InfoGraphic.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Markusovich/Covid19_InfoGraphic/issues"
+  },
+  "homepage": "https://github.com/Markusovich/Covid19_InfoGraphic#readme"
+}
