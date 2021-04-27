@@ -27,6 +27,26 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
+def getVaccineData():
+    # Unauthenticated client only works with public data sets. Note 'None'
+    # in place of application token, and no username or password:
+    client = Socrata("data.cdc.gov", None)
+
+    # Example authenticated client (needed for non-public datasets):
+    # client = Socrata(data.cdc.gov,
+    #                  MyAppToken,
+    #                  userame="user@example.com",
+    #                  password="AFakePassword")
+
+    # First 2000 results, returned as JSON from API / converted to Python list of
+    # dictionaries by sodapy.
+    results = client.get("n8mc-b4w4", limit=100000)
+
+    # Convert to pandas DataFrame
+    results_df = pd.DataFrame.from_records(results)
+
+    print(results_df)
+
 # This function returns a dataframe (dataset) of the most recent state covid data
 # Everytime your run the project, a new dataset is always pulled from data.cdc.gov
 def getStateData():
@@ -49,6 +69,8 @@ def getStateData():
 
     # Our function returns the dataset containing all covid data that we will work with
     return results_df
+
+print(getStateData())
 
 def getCountyCaseData():
     url = "https://static.usafacts.org/public/data/covid-19/covid_confirmed_usafacts.csv?_ga=2.222696091.1498587340.1614544717-1622888718.1614364715"
@@ -115,7 +137,7 @@ def datafunc():
         endDate = daterange[1]
         # Getting rid of all dates that fall outside of our range in the dataset
         data = data[data.submission_date >= startDate]
-        data = data[data.submission_date < endDate]
+        data = data[data.submission_date <= endDate]
 
         if data.empty:
             return render_template('datasearchstate.html', invalidmessage="Error. Invalid date range.")
@@ -276,11 +298,11 @@ def datafunc2():
 
         # Getting rid of all dates that fall outside of our range in the dataset
         for key in caseData.keys():
-            if key < startDate or key >= endDate:
+            if key < startDate or key > endDate:
                 caseData = caseData.drop([key], axis=1)
 
         for key in deathData.keys():
-            if key < startDate or key >= endDate:
+            if key < startDate or key > endDate:
                 deathData = deathData.drop([key], axis=1)
 
         caseData = caseData[caseData.columns[::-1]]
@@ -411,9 +433,6 @@ def datafunc2():
 
         post = "This is a post"
         return render_template('datasearchcounty.html', post=post, state=state, county=county)
-        '''
-        return render_template('datasearchcounty.html')
-        '''
     else:
         return render_template('datasearchcounty.html')
 
@@ -578,6 +597,9 @@ def base2():
         m = folium.Map(width=1000, height=600, location=[39.8283, -98.5795], zoom_start=4)
         with open("us-counties.json", "r") as configJSON:
             high_res_county_geo = json.load(configJSON)
+
+        # Counties that have a negative number as their value will be set to 0 as their new value
+        data.loc[data['Value'] <= 0, 'Value'] = 0
 
         m.choropleth(
             geo_data=high_res_county_geo,
