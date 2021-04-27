@@ -27,26 +27,6 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-def getVaccineData():
-    # Unauthenticated client only works with public data sets. Note 'None'
-    # in place of application token, and no username or password:
-    client = Socrata("data.cdc.gov", None)
-
-    # Example authenticated client (needed for non-public datasets):
-    # client = Socrata(data.cdc.gov,
-    #                  MyAppToken,
-    #                  userame="user@example.com",
-    #                  password="AFakePassword")
-
-    # First 2000 results, returned as JSON from API / converted to Python list of
-    # dictionaries by sodapy.
-    results = client.get("n8mc-b4w4", limit=100000)
-
-    # Convert to pandas DataFrame
-    results_df = pd.DataFrame.from_records(results)
-
-    print(results_df)
-
 # This function returns a dataframe (dataset) of the most recent state covid data
 # Everytime your run the project, a new dataset is always pulled from data.cdc.gov
 def getStateData():
