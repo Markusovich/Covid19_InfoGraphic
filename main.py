@@ -34,7 +34,7 @@ def getStateData():
     client = Socrata("data.cdc.gov", None)
     results = client.get("9mfq-cb36", limit=100000)
 
-    # Convert to pandas DataFrame so we can work with the dataset.
+    # Convert to pandas DataFrame so we can work with the dataset
     results_df = pd.DataFrame.from_records(results)
 
     # Removing unhelpful columns
