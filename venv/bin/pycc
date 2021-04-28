@@ -1,0 +1,3 @@
+#!/Users/markusovich/Covid19_InfoGraphic/venv/bin/python3
+from numba.pycc import main
+main()
