@@ -51,8 +51,6 @@ def getStateData():
     # Our function returns the dataset containing all covid data that we will work with
     return results_df
 
-print(getStateData())
-
 def getCountyCaseData():
     url = "https://static.usafacts.org/public/data/covid-19/covid_confirmed_usafacts.csv?_ga=2.222696091.1498587340.1614544717-1622888718.1614364715"
     s = requests.get(url).content
