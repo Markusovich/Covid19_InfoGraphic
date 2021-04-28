@@ -24,7 +24,7 @@ matplotlib.use('Agg')
 app = Flask(__name__)
 
 # This is so that the correct graphs get displayed, not older graphs
-# Resets cache after every run
+# Resets cache after every run.
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
