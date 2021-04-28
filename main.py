@@ -91,6 +91,11 @@ def getCountyFIPS():
 def homefunc():
     return render_template('home.html')
 
+# About us page
+@app.route('/aboutus')
+def aboutfunc():
+    return render_template('about_us.html')
+
 # This is the code that is executed when the website route is /datasearchstate
 @app.route('/datasearchstate', methods=['GET', 'POST'])
 def datafunc():
