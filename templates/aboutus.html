@@ -5,53 +5,45 @@
 {% endblock %}
 
 {% block body %}
-<div class="about-section">
-    <h1 style="color:white;">About Us Page</h1>
-    <p style="color:white;">We all are currently undergrads at Southern Illinois University - Carbondale.</p>
-  </div>
-  
-  <h2 style="text-align:center">Our Team</h2>
-  <div class="row">
-    <div class="column">
+<br><br>
+  <div class='container'>
+    <div class="about-section">
+      <h1 style="text-align:center; color:white;">About Us Page</h1>
+      <p style="text-align:center; color:white;">We all are currently undergrads at Southern Illinois University - Carbondale.</p>
+    </div>
+    <h2 style="text-align:center; color:white;">Our Team</h2>
+    <div class="card-group">
       <div class="card">
-        <img src="" alt="Simon" style="width:100%">
-        <div class="container">
-          <h2>Simon Markus</h2>
-          <p class="title">undergrad-senior</p>
-          <p>Tell us about you.</p>
-          <p>Contacts</p>
-          <p>Email: simon.markus@siu.edu</p>
-          <p>GitHub: Markusovich</p>
+        <img class="card-img-top" src="..." alt="Card image cap">
+        <div class="card-body">
+          <h5 class="card-title">Simon Markus</h5>
+          <p class="card-text">undergrad-senior</p>
+          <p class="card-text">Contacts</p>
+          <p class="card-text">Email: simon.markus@siu.edu</p>
+          <p class="card-text">GitHub: Markusovich</p>
         </div>
       </div>
-    </div>
-  
-    <div class="column">
       <div class="card">
-        <img src="aboutusprofilepicTyler.jpg" alt="Tyler" style="width:100%">
-        <div class="container">
-          <h2>Tyler Bishop</h2>
-          <p class="title">undergrad-senior BA-Computer Science</p>
-          <p>I will be graduating in fall 2021. </p>
-          <p>Contacts</p>
-          <p>Email: tyler.bishop@siu.edu</p>
-          <p>GitHub: tyler-bishop</p>
+        <img class="card-img-top" src="{{ url_for('static', filename='aboutusprofilepicTyler.jpg') }}" alt="Card image cap">
+        <div class="card-body">
+          <h5 class="card-title">Tyler Bishop</h5>
+          <p class="card-text">undergrad-senior BA-Computer Science</p>
+          <p class="card-text">Contacts</p>
+          <p class="card-text">Email: tyler.bishop@siu.edu</p>
+          <p class="card-text">GitHub: tyler-bishop</p>
         </div>
       </div>
-    </div>
-  
-    <div class="column">
       <div class="card">
-        <img src="" alt="Isaiah" style="width:100%">
-        <div class="container">
-          <h2>Isaiah Overton</h2>
-          <p class="title">undergrad-senior</p>
-          <p>Tell us about you.</p>
-          <p>Contacts</p>
-          <p>Email: isaiah.overton@siu.edu</p>
-          <p>GitHub: rashawnoverton</p>
+        <img class="card-img-top" src="..." alt="Card image cap">
+        <div class="card-body">
+          <h5 class="card-title">Isaiah Overton</h5>
+          <p class="card-text">undergrad-senior</p>
+          <p class="card-text">Contacts</p>
+          <p class="card-text">Email: isaiah.overton@siu.edu</p>
+          <p class="card-text">GitHub: rashawnoverton</p>
         </div>
       </div>
     </div>
   </div>
+  <br><br><br><br><br><br><br><br><br>
 {% endblock %}

@@ -94,7 +94,7 @@ def homefunc():
 # About us page
 @app.route('/aboutus')
 def aboutfunc():
-    return render_template('about_us.html')
+    return render_template('aboutus.html')
 
 # This is the code that is executed when the website route is /datasearchstate
 @app.route('/datasearchstate', methods=['GET', 'POST'])
